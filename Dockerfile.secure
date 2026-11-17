@@ -1,0 +1,33 @@
+# STAGE 1: Build stage
+FROM python:3.12-alpine AS builder
+
+WORKDIR /build
+
+COPY requirements-secure.txt requirements.txt
+
+RUN pip install --no-cache-dir --user -r requirements.txt
+
+# STAGE 2: Runtime stage
+FROM python:3.12-alpine AS runtime
+
+RUN apk update && apk upgrade --no-cache
+
+# Membuat user non-root
+RUN addgroup -g 1001 -S appgroup && \
+    adduser -u 1001 -S appuser -G appgroup
+
+WORKDIR /app
+
+# Menyalin dependency dari build stage
+COPY --from=builder /root/.local /home/appuser/.local
+
+# Menyalin aplikasi dengan kepemilikan user non-root
+COPY --chown=appuser:appgroup app.py .
+
+# Menggunakan user non-root
+USER appuser
+
+EXPOSE 8080
+
+ENTRYPOINT ["python3"]
+CMD ["app.py"]
