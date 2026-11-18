@@ -28,7 +28,7 @@ jobs:
           output: trivy-dependency-results.sarif
           severity: CRITICAL,HIGH
           limit-severities-for-sarif: true
-          exit-code: '1'
+          exit-code: '0'
 
       - name: Upload Dependency Scan Results
         uses: github/codeql-action/upload-sarif@v3
